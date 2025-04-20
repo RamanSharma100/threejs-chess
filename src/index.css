@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  --square-light: #f0d9b5;
+  --square-dark: #b58863;
+  --background-dark: #0f172a;
+  --background-light: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --border: #cccccc;
+  --accent: #d4a373;
+}
+
+
+/* Forest Theme */
+:root[class="forest"] {
+  --square-light: #a8d5ba;
+  --square-dark: #519872;
+  --background-dark: #2b3a3a;
+  --background-light: #e8f5e9;
+  --text-primary: #1b5e20;
+  --text-secondary: #4caf50;
+  --border: #81c784;
+  --accent: #388e3c;
+}
+
+/* Ocean Theme */
+:root[class="ocean"] {
+  --square-light: #d0f0fd;
+  --square-dark: #0077be;
+  --background-dark: #001f3f;
+  --background-light: #e0f7fa;
+  --text-primary: #01579b;
+  --text-secondary: #0288d1;
+  --border: #81d4fa;
+  --accent: #03a9f4;
+}
+
+/* Sunset Theme */
+:root[class="sunset"] {
+  --square-light: #fdd9b5;
+  --square-dark: #ff6f61;
+  --background-dark: #4a1a1a;
+  --background-light: #ffe5d9;
+  --text-primary: #d84315;
+  --text-secondary: #ff7043;
+  --border: #ffab91;
+  --accent: #bf360c;
+}
+
+/* Midnight Theme */
+:root[class="midnight"] {
+  --square-light: #2e2e2e;
+  --square-dark: #1a1a1a;
+  --background-dark: #000000;
+  --background-light: #121212;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --border: #666666;
+  --accent: #bb86fc;
+}
+
+@theme {
+  --color-square-light: var(--square-light);
+  --color-square-dark: var(--square-dark);
+  --color-background-dark: var(--background-dark);
+  --color-background-light: var(--background-light);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+}
