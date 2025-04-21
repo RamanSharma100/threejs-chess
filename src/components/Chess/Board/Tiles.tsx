@@ -6,10 +6,11 @@ import * as THREE from 'three';
 import { move, unselect } from '../../../store/features/chess/chess-slice';
 
 const BoardTiles = () => {
-  const { paths, selected } = useAppSelector(
+  const { paths, selected, board } = useAppSelector(
     (state: RootState) => ({
       paths: state.chess.paths,
       selected: state.chess.selected,
+      board: state.chess.board,
     }),
     shallowEqual
   );
@@ -93,9 +94,13 @@ const BoardTiles = () => {
         const isPath = paths.some(([px, py]) => px === x && py === y);
 
         const handleClick = () => {
-          if (selected) {
-            if (isPath) dispatch(move([x, y]));
-            else dispatch(unselect());
+          if (!board[y][x] && selected && !isPath) {
+            dispatch(unselect());
+            return;
+          }
+
+          if (isPath && selected) {
+            dispatch(move([x, y]));
           }
         };
 

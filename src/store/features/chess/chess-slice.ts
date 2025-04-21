@@ -43,20 +43,20 @@ const chessGameSlice = createSlice({
       let [x, y] = action.payload;
       x += state.offset || 3.5;
       y += state.offset || 3.5;
-      const piece = state.board[y][x];
 
-      console.log(piece);
+      const piece = state.board[y][x];
 
       if (!piece || piece[0] !== state.turn) {
         state.selected = null;
         state.paths = [];
+        console.log('Invalid piece selected or not your turn');
         return;
       }
 
       state.selected = [x, y];
 
       state.paths = getMoves(x, y, piece, state.board, state.turn);
-      state.selected = action.payload;
+      state.selected = [x, y];
     },
     move: (state, action: PayloadAction<[number, number]>) => {
       let [x, y] = action.payload;
