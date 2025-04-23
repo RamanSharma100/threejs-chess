@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
-import { shallowEqual } from 'react-redux';
-import { useAppDispatch, useAppSelector } from '../../../hooks';
-import { RootState } from '../../../store/store';
 import * as THREE from 'three';
+import { Text } from '@react-three/drei';
+import { shallowEqual } from 'react-redux';
+
+import { RootState } from '../../../store/store';
+import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { move, unselect } from '../../../store/features/chess/chess-slice';
+import { VECTORS } from '../../../constants';
 
 const BoardTiles = () => {
   const { paths, selected, board } = useAppSelector(
@@ -25,6 +28,7 @@ const BoardTiles = () => {
       uniforms: {
         color1: { type: 'c', value: new THREE.Color(0x0000ff) },
         color2: { type: 'c', value: new THREE.Color(0x00ffff) },
+        texture: { type: 't', value: new THREE.Texture() },
         time: { type: 'f', value: 0 },
       },
       vertexShader: `
@@ -133,13 +137,38 @@ const BoardTiles = () => {
               <boxGeometry args={[1, 0.1, 1]} />
               {material}
             </mesh>
+
+            {x == 0 && (
+              <Text
+                position={[x - offset - 1, 0.4, y - offset]}
+                fontSize={0.5}
+                color="white"
+                anchorX="center"
+                anchorY="top"
+                rotation={[-Math.PI / 4, 0, 0]}>
+                {/* {y} {x} */}
+                {y + 1}
+              </Text>
+            )}
+
+            {y == board.length - 1 && (
+              <Text
+                position={[x - offset - 0, 0.4, y - offset + 1.0]}
+                fontSize={0.5}
+                color="white"
+                anchorX="center"
+                anchorY="top"
+                rotation={[-Math.PI / 4, 0, 0]}>
+                {VECTORS.NAMINGS.HORIZONTAL[x]}
+              </Text>
+            )}
           </group>
         );
       }
     }
 
     return out;
-  }, [paths, selected, dispatch]);
+  }, [paths, selected, dispatch, board]);
 
   return <>{tiles}</>;
 };
