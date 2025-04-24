@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getMoves } from '../../../logic/chess/moves';
+import {
+  isValidMove,
+  makeMove,
+  // isCheck,
+  // isCheckmate,
+  // canCastle,
+} from '../../../logic/chess/move-logic';
+
 export type PieceCode = string | null;
 export type Board = PieceCode[][];
 
@@ -59,17 +67,27 @@ const chessGameSlice = createSlice({
       state.selected = [x, y];
     },
     move: (state, action: PayloadAction<[number, number]>) => {
-      let [x, y] = action.payload;
-      x += state.offset || 3.5;
-      y += state.offset || 3.5;
+      const [x, y] = action.payload;
       const [sx, sy] = state.selected!;
-      console.log(`Moving piece from (${sx}, ${sy}) to (${x}, ${y})`);
-      console.log(state.board);
-      const piece = state.board[sy][sx];
-      state.board[sy][sx] = null;
-      state.board[y][x] = piece;
-      state.turn = state.turn === 'w' ? 'b' : 'w';
+      const from: [number, number] = [sx, sy];
+      console.log('to', [x, y]);
+      const to: [number, number] = [x, y];
+
+      if (!isValidMove(from, to, state.board, state.turn)) {
+        console.log('Invalid move');
+        return;
+      }
+
+      const { newBoard, captured } = makeMove(state.board, from, to);
+      state.board = newBoard;
       state.selected = null;
+      state.paths = [];
+      state.turn = state.turn === 'w' ? 'b' : 'w';
+      console.log(`Moved piece from (${sx}, ${sy}) to (${x}, ${y})`);
+
+      if (captured) {
+        console.log(`Captured piece: ${captured}`);
+      }
     },
     reset: () => initialState,
     setOffset: (state, action: PayloadAction<number>) => {

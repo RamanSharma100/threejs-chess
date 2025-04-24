@@ -9,11 +9,12 @@ import { move, unselect } from '../../../store/features/chess/chess-slice';
 import { VECTORS } from '../../../constants';
 
 const BoardTiles = () => {
-  const { paths, selected, board } = useAppSelector(
+  const { paths, selected, board, turn } = useAppSelector(
     (state: RootState) => ({
       paths: state.chess.paths,
       selected: state.chess.selected,
       board: state.chess.board,
+      turn: state.chess.turn,
     }),
     shallowEqual
   );
@@ -145,20 +146,31 @@ const BoardTiles = () => {
                 color="white"
                 anchorX="center"
                 anchorY="top"
-                rotation={[-Math.PI / 4, 0, 0]}>
-                {/* {y} {x} */}
+                rotation={
+                  turn === 'w'
+                    ? [-Math.PI / 4, 0, 0]
+                    : [Math.PI / 4, Math.PI, 0]
+                }>
                 {y + 1}
               </Text>
             )}
 
-            {y == board.length - 1 && (
+            {(turn === 'w' ? y == board.length - 1 : y == 0) && (
               <Text
-                position={[x - offset - 0, 0.4, y - offset + 1.0]}
+                position={
+                  turn === 'w'
+                    ? [x - offset, 0.4, y - offset + 1]
+                    : [offset - x, 0.4, y - offset - 1]
+                }
                 fontSize={0.5}
                 color="white"
                 anchorX="center"
                 anchorY="top"
-                rotation={[-Math.PI / 4, 0, 0]}>
+                rotation={
+                  turn === 'w'
+                    ? [-Math.PI / 4, 0, 0]
+                    : [Math.PI / 4, Math.PI, 0]
+                }>
                 {VECTORS.NAMINGS.HORIZONTAL[x]}
               </Text>
             )}
