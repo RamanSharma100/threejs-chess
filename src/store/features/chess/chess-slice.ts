@@ -7,6 +7,12 @@ import {
   // isCheckmate,
   // canCastle,
 } from '../../../logic/chess/move-logic';
+import {
+  playCaptureSound,
+  playCheckSound,
+  playMoveSound,
+  playSelectSound,
+} from '../../../helpers';
 
 export type PieceCode = string | null;
 export type Board = PieceCode[][];
@@ -74,14 +80,16 @@ const chessGameSlice = createSlice({
   initialState,
   reducers: {
     select: (state, action: PayloadAction<[number, number]>) => {
-      console.log(
-        `Selected piece at (${action.payload[0]}, ${action.payload[1]})`
-      );
       let [x, y] = action.payload;
       x += state.offset || 3.5;
       y += state.offset || 3.5;
 
       const piece = state.board[y][x];
+
+      if (state.inCheck[state.turn] && piece && piece[1] !== 'K') {
+        console.log('In check, cannot select piece');
+        return;
+      }
 
       if (!piece || piece[0] !== state.turn) {
         if (state.selected) {
@@ -94,7 +102,13 @@ const chessGameSlice = createSlice({
         return;
       }
 
+      console.log(
+        `Selected piece at (${action.payload[0]}, ${action.payload[1]})`
+      );
+
       state.selected = [x, y];
+
+      playSelectSound();
 
       state.paths = getMoves(x, y, piece, state.board, state.turn);
       state.selected = [x, y];
@@ -103,7 +117,6 @@ const chessGameSlice = createSlice({
       const [x, y] = action.payload;
       const [sx, sy] = state.selected!;
       const from: [number, number] = [sx, sy];
-      console.log('to', [x, y]);
       const to: [number, number] = [x, y];
 
       if (!isValidMove(from, to, state.board, state.turn)) {
@@ -113,16 +126,26 @@ const chessGameSlice = createSlice({
         return;
       }
 
-      const { newBoard, captured } = makeMove(state.board, from, to);
+      const { newBoard, captured, isInCheck } = makeMove(state.board, from, to);
       state.board = newBoard;
       state.selected = null;
       state.paths = [];
-      state.turn = state.turn === 'w' ? 'b' : 'w';
       console.log(`Moved piece from (${sx}, ${sy}) to (${x}, ${y})`);
 
       if (captured) {
         console.log(`Captured piece: ${captured}`);
+        playCaptureSound();
+        state.capturedPieces[state.turn].push(captured);
+      } else {
+        if (isInCheck) {
+          playCheckSound();
+        } else {
+          playMoveSound();
+        }
       }
+
+      state.turn = state.turn === 'w' ? 'b' : 'w';
+      state.inCheck[state.turn] = isInCheck;
     },
     reset: () => initialState,
     setOffset: (state, action: PayloadAction<number>) => {

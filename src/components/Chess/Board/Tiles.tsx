@@ -9,12 +9,13 @@ import { move, unselect } from '../../../store/features/chess/chess-slice';
 import { VECTORS } from '../../../constants';
 
 const BoardTiles = () => {
-  const { paths, selected, board, turn } = useAppSelector(
+  const { paths, selected, board, turn, isInCheck } = useAppSelector(
     (state: RootState) => ({
       paths: state.chess.paths,
       selected: state.chess.selected,
       board: state.chess.board,
       turn: state.chess.turn,
+      isInCheck: state.chess.inCheck,
     }),
     shallowEqual
   );
@@ -62,6 +63,43 @@ const BoardTiles = () => {
       `,
     };
 
+    const redGradientShader = {
+      uniforms: {
+        color1: { type: 'c', value: new THREE.Color(0xff0020) },
+        color2: { type: 'c', value: new THREE.Color(0xff0000) },
+        texture: { type: 't', value: new THREE.Texture() },
+        time: { type: 'f', value: 0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color1;
+        uniform vec3 color2;
+        uniform float time;
+        varying vec2 vUv;
+
+        void main() {
+          
+          float dx = vUv.x - 0.5;
+          float dy = vUv.y - 0.5;
+
+          
+          float dist = sqrt(dx * dx * 2.0 + dy * dy * 1.2); 
+
+          
+          vec3 gradientColor = mix(color1, color2, dist);
+
+          
+          gl_FragColor = vec4(gradientColor, 1.0);
+        }
+      `,
+    };
+
     const handleHoverIn = (e: any, isPath: boolean) => {
       if (isPath) {
         if (e.object.material.emissive) {
@@ -73,15 +111,25 @@ const BoardTiles = () => {
         }
         e.object.material.wireframe = true;
       } else {
-        e.object.material.color.set(0x00ff00);
-        e.object.material.emissiveIntensity = 0.3;
+        if (e.object.material.emissive) {
+          e.object.material.emissive.set(0x00ff00);
+          e.object.material.emissiveIntensity = 0.3;
+        }
+        if (e.object.material.color) {
+          e.object.material.color.set(0x00ff00);
+          e.object.material.emissiveIntensity = 0.3;
+        }
       }
     };
 
     const handleHoverOut = (e: any, isPath: boolean, x: number, y: number) => {
       if (isPath) {
         if (e.object.material.emissive) {
-          e.object.material.emissive.set(0x0000ff);
+          try {
+            e.object.material.emissive.set(0x0000ff);
+          } catch (_) {
+            console.log('Error setting emissive color', e.object.material);
+          }
           e.object.material.emissiveIntensity = 0;
         }
         if (e.object.material.color) {
@@ -89,7 +137,13 @@ const BoardTiles = () => {
         }
         e.object.material.wireframe = false;
       } else {
-        e.object.material.color.set((x + y) % 2 === 0 ? 'white' : 'gray');
+        if (e.object.material.emissive) {
+          e.object.material.emissive.set((x + y) % 2 === 0 ? 'white' : 'gray');
+          e.object.material.emissiveIntensity = 0;
+        }
+        if (e.object.material.color) {
+          e.object.material.color.set((x + y) % 2 === 0 ? 'white' : 'gray');
+        }
       }
     };
 
@@ -109,23 +163,28 @@ const BoardTiles = () => {
           }
         };
 
-        const material = isPath ? (
-          <shaderMaterial
-            attach="material"
-            args={[gradientShader]}
-            uniforms={{
-              color1: { value: new THREE.Color(0x0000ff) },
-              color2: { value: new THREE.Color(0x00ffff) },
-              time: { value: 0.1 },
-            }}
-          />
-        ) : (
-          <meshStandardMaterial
-            color={color}
-            emissive={isPath ? 'blue' : color}
-            emissiveIntensity={isPath ? 1.5 : 0}
-          />
-        );
+        const material =
+          isPath || (isInCheck[turn] && board[y][x] === `${turn}K`) ? (
+            <shaderMaterial
+              attach="material"
+              args={
+                isInCheck[turn] && !selected
+                  ? [redGradientShader]
+                  : [gradientShader]
+              }
+              uniforms={
+                isInCheck[turn] && !selected
+                  ? redGradientShader.uniforms
+                  : gradientShader.uniforms
+              }
+            />
+          ) : (
+            <meshStandardMaterial
+              color={color}
+              emissive={isPath ? 'blue' : color}
+              emissiveIntensity={isPath ? 1.5 : 0}
+            />
+          );
 
         out.push(
           <group key={`tile-${x}-${y}`}>
@@ -180,7 +239,7 @@ const BoardTiles = () => {
     }
 
     return out;
-  }, [paths, selected, dispatch, board, turn]);
+  }, [paths, selected, dispatch, board, turn, isInCheck]);
 
   return <>{tiles}</>;
 };

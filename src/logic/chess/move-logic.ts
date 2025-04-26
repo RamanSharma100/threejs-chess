@@ -8,16 +8,10 @@ export const isValidMove = (
   turn: 'w' | 'b'
 ): boolean => {
   const [fx, fy] = from;
-  console.log('from', from);
   const piece = board[fy][fx];
-  console.log('piece', piece);
-  console.log('turn', turn);
-  console.log('from', from);
   if (!piece || piece[0] !== turn) return false;
 
   const validMoves = getMoves(fx, fy, piece, board, turn);
-  console.log('validMoves', validMoves);
-  console.log('to', to);
   console.log(validMoves.some(([x, y]) => x === to[0] && y === to[1]));
   return validMoves.some(([x, y]) => x === to[0] && y === to[1]);
 };
@@ -26,7 +20,7 @@ export const makeMove = (
   board: Board,
   from: [number, number],
   to: [number, number]
-): { newBoard: Board; captured: PieceCode | null } => {
+): { newBoard: Board; captured: PieceCode | null; isInCheck: boolean } => {
   const newBoard = board.map((row) => [...row]);
   const [fx, fy] = from;
   const [tx, ty] = to;
@@ -36,12 +30,16 @@ export const makeMove = (
   newBoard[fy][fx] = null;
   newBoard[ty][tx] = piece;
 
-  return { newBoard, captured };
+  // check for the check
+  const isInCheck = isCheck(newBoard, piece![0] === 'w' ? 'b' : 'w');
+
+  return { newBoard, captured, isInCheck };
 };
 
 export const isCheck = (board: Board, turn: 'w' | 'b'): boolean => {
   const opponent = turn === 'w' ? 'b' : 'w';
   let kingPos: [number, number] | null = null;
+  console.log(turn);
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
@@ -52,6 +50,7 @@ export const isCheck = (board: Board, turn: 'w' | 'b'): boolean => {
     }
     if (kingPos) break;
   }
+
   if (!kingPos) return false;
 
   for (let y = 0; y < 8; y++) {
