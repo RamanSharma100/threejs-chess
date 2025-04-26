@@ -147,7 +147,7 @@ const BoardTiles = () => {
                 anchorX="center"
                 anchorY="top"
                 rotation={
-                  turn === 'w'
+                  turn === 'b'
                     ? [-Math.PI / 4, 0, 0]
                     : [Math.PI / 4, Math.PI, 0]
                 }>
@@ -155,10 +155,10 @@ const BoardTiles = () => {
               </Text>
             )}
 
-            {(turn === 'w' ? y == board.length - 1 : y == 0) && (
+            {(turn === 'b' ? y == board.length - 1 : y == 0) && (
               <Text
                 position={
-                  turn === 'w'
+                  turn === 'b'
                     ? [x - offset, 0.4, y - offset + 1]
                     : [offset - x, 0.4, y - offset - 1]
                 }
@@ -167,7 +167,7 @@ const BoardTiles = () => {
                 anchorX="center"
                 anchorY="top"
                 rotation={
-                  turn === 'w'
+                  turn === 'b'
                     ? [-Math.PI / 4, 0, 0]
                     : [Math.PI / 4, Math.PI, 0]
                 }>

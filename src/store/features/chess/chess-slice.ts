@@ -12,15 +12,25 @@ export type PieceCode = string | null;
 export type Board = PieceCode[][];
 
 const initialBoard: Board = [
-  ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
-  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
+  ['wR', 'wN', 'wB', 'wK', 'wQ', 'wB', 'wN', 'wR'],
   ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
-  ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
+  ['bR', 'bN', 'bB', 'bK', 'bQ', 'bB', 'bN', 'bR'],
 ];
+
+type Bool = {
+  w: boolean;
+  b: boolean;
+};
+
+type CapturedPieces = {
+  w: PieceCode[];
+  b: PieceCode[];
+};
 
 type GameState = {
   board: Board;
@@ -29,6 +39,11 @@ type GameState = {
   level: number;
   paths: [number, number][];
   offset?: number;
+  opponent?: 'w' | 'b';
+  inCheck: Bool;
+  isCheckmate: 'w' | 'b' | null;
+  canCastle: Bool;
+  capturedPieces: CapturedPieces;
 };
 
 const initialState: GameState = {
@@ -38,6 +53,20 @@ const initialState: GameState = {
   level: 1,
   paths: [],
   offset: 3.5,
+  opponent: 'b',
+  inCheck: {
+    w: false,
+    b: false,
+  },
+  isCheckmate: null,
+  canCastle: {
+    w: false,
+    b: false,
+  },
+  capturedPieces: {
+    w: [],
+    b: [],
+  },
 };
 
 const chessGameSlice = createSlice({
@@ -55,6 +84,10 @@ const chessGameSlice = createSlice({
       const piece = state.board[y][x];
 
       if (!piece || piece[0] !== state.turn) {
+        if (state.selected) {
+          console.log('other piece selected');
+          return;
+        }
         state.selected = null;
         state.paths = [];
         console.log('Invalid piece selected or not your turn');
@@ -75,6 +108,8 @@ const chessGameSlice = createSlice({
 
       if (!isValidMove(from, to, state.board, state.turn)) {
         console.log('Invalid move');
+        state.selected = null;
+        state.paths = [];
         return;
       }
 

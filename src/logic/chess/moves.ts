@@ -7,12 +7,12 @@ export const getPawnMoves = (
   board: Board
 ): [number, number][] => {
   const moves: [number, number][] = [];
-  const direction = color === 'w' ? -1 : 1;
+  const direction = color === 'w' ? 1 : -1;
 
   if (!board[y + direction]?.[x]) {
     moves.push([x, y + direction]);
 
-    if ((color === 'w' && y === 6) || (color === 'b' && y === 1)) {
+    if ((color === 'w' && y === 1) || (color === 'b' && y === 6)) {
       if (!board[y + 2 * direction]?.[x]) {
         moves.push([x, y + 2 * direction]);
       }
