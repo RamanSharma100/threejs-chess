@@ -171,7 +171,7 @@ const BoardTiles = () => {
                     ? [-Math.PI / 4, 0, 0]
                     : [Math.PI / 4, Math.PI, 0]
                 }>
-                {VECTORS.NAMINGS.HORIZONTAL[x]}
+                {VECTORS.NAMINGS.HORIZONTAL[board[0].length - 1 - x]}
               </Text>
             )}
           </group>
@@ -180,7 +180,7 @@ const BoardTiles = () => {
     }
 
     return out;
-  }, [paths, selected, dispatch, board]);
+  }, [paths, selected, dispatch, board, turn]);
 
   return <>{tiles}</>;
 };
