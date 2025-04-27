@@ -1,10 +1,21 @@
 import { Board } from '../../store/features/chess/chess-slice';
+import { isCheck } from './move-logic';
+
+export type Status = {
+  isInCheck: {
+    w: boolean;
+    b: boolean;
+  };
+  isInCheckmate: 'w' | 'b' | null;
+  canCastle: boolean;
+};
 
 export const getPawnMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
   const moves: [number, number][] = [];
   const direction = color === 'w' ? 1 : -1;
@@ -30,7 +41,9 @@ export const getPawnMoves = (
     }
   }
 
-  return moves;
+  return status.isInCheck[color]
+    ? filterMoves(moves, x, y, color, board, status)
+    : moves;
 };
 
 export const getMoves = (
@@ -38,23 +51,24 @@ export const getMoves = (
   y: number,
   piece: string,
   board: Board,
-  color: 'w' | 'b'
+  color: 'w' | 'b',
+  status: Status
 ): [number, number][] => {
   const type = piece[1];
 
   switch (type) {
     case 'P':
-      return getPawnMoves(x, y, color, board);
+      return getPawnMoves(x, y, color, board, status);
     case 'R':
-      return getRookMoves(x, y, color, board);
+      return getRookMoves(x, y, color, board, status);
     case 'N':
-      return getKnightMoves(x, y, color, board);
+      return getKnightMoves(x, y, color, board, status);
     case 'B':
-      return getBishopMoves(x, y, color, board);
+      return getBishopMoves(x, y, color, board, status);
     case 'Q':
-      return getQueenMoves(x, y, color, board);
+      return getQueenMoves(x, y, color, board, status);
     case 'K':
-      return getKingMoves(x, y, color, board);
+      return getKingMoves(x, y, color, board, status);
     default:
       return [];
   }
@@ -64,7 +78,8 @@ const getRookMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
   const paths: [number, number][] = [];
   const directions = [
@@ -89,14 +104,17 @@ const getRookMoves = (
     }
   }
 
-  return paths;
+  return status.isInCheck[color]
+    ? filterMoves(paths, x, y, color, board, status)
+    : paths;
 };
 
 const getKnightMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
   const paths: [number, number][] = [];
   const moves = [
@@ -121,14 +139,17 @@ const getKnightMoves = (
     }
   }
 
-  return paths;
+  return status.isInCheck[color]
+    ? filterMoves(paths, x, y, color, board, status)
+    : paths;
 };
 
 const getBishopMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
   const paths: [number, number][] = [];
   const directions = [
@@ -153,26 +174,34 @@ const getBishopMoves = (
     }
   }
 
-  return paths;
+  return status.isInCheck[color]
+    ? filterMoves(paths, x, y, color, board, status)
+    : paths;
 };
 
 const getQueenMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
-  return [
-    ...getRookMoves(x, y, color, board),
-    ...getBishopMoves(x, y, color, board),
+  const paths = [
+    ...getRookMoves(x, y, color, board, status),
+    ...getBishopMoves(x, y, color, board, status),
   ];
+
+  return status.isInCheck[color]
+    ? filterMoves(paths, x, y, color, board, status)
+    : paths;
 };
 
 const getKingMoves = (
   x: number,
   y: number,
   color: 'w' | 'b',
-  board: Board
+  board: Board,
+  status: Status
 ): [number, number][] => {
   const paths: [number, number][] = [];
   const moves = [
@@ -197,5 +226,35 @@ const getKingMoves = (
     }
   }
 
-  return paths;
+  return status.isInCheck[color]
+    ? filterMoves(paths, x, y, color, board, status)
+    : paths;
+};
+
+export const filterMoves = (
+  moves: [number, number][],
+  x: number,
+  y: number,
+  color: 'w' | 'b',
+  board: Board,
+  status: Status
+): [number, number][] => {
+  const filteredMoves: [number, number][] = [];
+
+  for (const [nx, ny] of moves) {
+    const newBoard: Board = board.map((row) => [...row]);
+
+    newBoard[ny][nx] = newBoard[y][x];
+    newBoard[y][x] = null;
+
+    if (!isCheck(newBoard, color)) {
+      filteredMoves.push([nx, ny]);
+    }
+  }
+
+  return status.isInCheck[color]
+    ? filteredMoves
+    : moves.filter(([nx, ny]) =>
+        filteredMoves.some(([fx, fy]) => fx === nx && fy === ny)
+      );
 };

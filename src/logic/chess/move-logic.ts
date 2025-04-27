@@ -1,17 +1,18 @@
 import { Board, PieceCode } from '../../store/features/chess/chess-slice';
-import { getMoves } from './moves';
+import { getMoves, Status } from './moves';
 
 export const isValidMove = (
   from: [number, number],
   to: [number, number],
   board: Board,
-  turn: 'w' | 'b'
+  turn: 'w' | 'b',
+  status: Status
 ): boolean => {
   const [fx, fy] = from;
   const piece = board[fy][fx];
   if (!piece || piece[0] !== turn) return false;
 
-  const validMoves = getMoves(fx, fy, piece, board, turn);
+  const validMoves = getMoves(fx, fy, piece, board, turn, status);
   console.log(validMoves.some(([x, y]) => x === to[0] && y === to[1]));
   return validMoves.some(([x, y]) => x === to[0] && y === to[1]);
 };
@@ -36,47 +37,62 @@ export const makeMove = (
   return { newBoard, captured, isInCheck };
 };
 
-export const isCheck = (board: Board, turn: 'w' | 'b'): boolean => {
-  const opponent = turn === 'w' ? 'b' : 'w';
-  let kingPos: [number, number] | null = null;
-  console.log(turn);
+export const isCheck = (board: Board, color: 'w' | 'b'): boolean => {
+  // Find king's position
+  let kingX = -1;
+  let kingY = -1;
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
-      if (board[y][x] === `${turn}K`) {
-        kingPos = [x, y];
+      if (board[y][x] === `${color}K`) {
+        kingX = x;
+        kingY = y;
         break;
       }
     }
-    if (kingPos) break;
+    if (kingX !== -1) break;
   }
 
-  if (!kingPos) return false;
+  if (kingX === -1 || kingY === -1) {
+    // King is missing from board (shouldn't happen)
+    return true;
+  }
+
+  // Check if any opponent piece can capture the king
+  const opponentColor = color === 'w' ? 'b' : 'w';
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = board[y][x];
-      if (piece && piece[0] === opponent) {
-        const moves = getMoves(x, y, piece, board, opponent);
-        if (
-          moves.some(([mx, my]) => mx === kingPos![0] && my === kingPos![1])
-        ) {
+      if (piece && piece[0] === opponentColor) {
+        const moves = getMoves(x, y, piece, board, opponentColor, {
+          isInCheck: { w: false, b: false },
+          isInCheckmate: null,
+          canCastle: false,
+        });
+
+        if (moves.some(([mx, my]) => mx === kingX && my === kingY)) {
           return true;
         }
       }
     }
   }
+
   return false;
 };
 
-export const isCheckmate = (board: Board, turn: 'w' | 'b'): boolean => {
+export const isCheckmate = (
+  board: Board,
+  turn: 'w' | 'b',
+  status: Status
+): boolean => {
   if (!isCheck(board, turn)) return false;
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = board[y][x];
       if (piece && piece[0] === turn) {
-        const moves = getMoves(x, y, piece, board, turn);
+        const moves = getMoves(x, y, piece, board, turn, status);
         for (const [mx, my] of moves) {
           const { newBoard } = makeMove(board, [x, y], [mx, my]);
           if (!isCheck(newBoard, turn)) {
@@ -89,7 +105,11 @@ export const isCheckmate = (board: Board, turn: 'w' | 'b'): boolean => {
   return true;
 };
 
-export const canCastle = (board: Board, turn: 'w' | 'b'): boolean => {
+export const canCastle = (
+  board: Board,
+  turn: 'w' | 'b',
+  status: Status
+): boolean => {
   const y = turn === 'w' ? 7 : 0;
   const king = board[y][4];
   const rookKingside = board[y][7];
