@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
 import { shallowEqual } from 'react-redux';
@@ -7,6 +7,7 @@ import { RootState } from '../../../store/store';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { move, unselect } from '../../../store/features/chess/chess-slice';
 import { VECTORS } from '../../../constants';
+import HoveredPiece from '../HoveredPiece';
 
 const BoardTiles = () => {
   const { paths, selected, board, turn, isInCheck } = useAppSelector(
@@ -19,6 +20,8 @@ const BoardTiles = () => {
     }),
     shallowEqual
   );
+
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -100,7 +103,12 @@ const BoardTiles = () => {
       `,
     };
 
-    const handleHoverIn = (e: any, isPath: boolean) => {
+    const handleHoverIn = (e: any, isPath: boolean, code: string | null) => {
+      if (code) {
+        setTimeout(() => {
+          setHovered(code);
+        }, 200);
+      }
       if (isPath) {
         if (e.object.material.emissive) {
           e.object.material.emissive.set(0x0000ff);
@@ -123,6 +131,7 @@ const BoardTiles = () => {
     };
 
     const handleHoverOut = (e: any, isPath: boolean, x: number, y: number) => {
+      setHovered(null);
       if (isPath) {
         if (e.object.material.emissive) {
           try {
@@ -192,7 +201,7 @@ const BoardTiles = () => {
               position={[x - offset, 0, y - offset]}
               key={`tile-${x}-${y}`}
               onClick={handleClick}
-              onPointerOver={(e) => handleHoverIn(e, isPath)}
+              onPointerOver={(e) => handleHoverIn(e, isPath, board[y][x])}
               onPointerOut={(e) => handleHoverOut(e, isPath, x, y)}>
               <boxGeometry args={[1, 0.1, 1]} />
               {material}
@@ -233,13 +242,20 @@ const BoardTiles = () => {
                 {VECTORS.NAMINGS.HORIZONTAL[board[0].length - 1 - x]}
               </Text>
             )}
+            {hovered && (
+              <HoveredPiece
+                piece={board[y][x]}
+                turn={turn}
+                code={hovered.toLowerCase()}
+              />
+            )}
           </group>
         );
       }
     }
 
     return out;
-  }, [paths, selected, dispatch, board, turn, isInCheck]);
+  }, [paths, selected, dispatch, board, turn, isInCheck, hovered]);
 
   return <>{tiles}</>;
 };

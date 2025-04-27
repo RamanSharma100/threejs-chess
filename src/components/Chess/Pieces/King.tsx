@@ -1,7 +1,6 @@
 import { useMemo, forwardRef } from 'react';
 import * as THREE from 'three';
 import ChessPiece from './Main';
-
 type PieceProps = {
   position: [number, number];
   color: 'w' | 'b';

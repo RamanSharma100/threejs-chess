@@ -18,11 +18,29 @@ const ChessBoard = () => {
 
   return (
     <Canvas
-      camera={{ position: [0, 15, 8], fov: 40 }}
+      camera={{ position: [0, 18, 10], fov: 40 }}
       shadows
       onCreated={() => playGameStartSound()}>
       <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 10, 5]} castShadow />
+      <directionalLight
+        position={[0, 10, 0]}
+        intensity={1.5} // Increased intensity for better visibility
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+      />
+      <spotLight
+        position={[0, 10, 0]}
+        angle={0.3}
+        penumbra={1}
+        intensity={1}
+        castShadow
+      />
       <group rotation={turn === 'w' ? [0, Math.PI, 0] : [0, 0, 0]}>
         <BoardTiles />
         {board.map((row, y) =>

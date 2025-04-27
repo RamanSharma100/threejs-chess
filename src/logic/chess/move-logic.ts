@@ -108,7 +108,7 @@ export const isCheckmate = (
 export const canCastle = (
   board: Board,
   turn: 'w' | 'b',
-  status: Status
+  _status: Status
 ): boolean => {
   const y = turn === 'w' ? 7 : 0;
   const king = board[y][4];
