@@ -15,7 +15,10 @@ const HoveredPiece = ({ turn, code, piece }: HoveredPieceProps) => {
   const crossWidth = 0.22;
   const crossThickness = 0.06;
 
-  const whiteColor = useMemo(() => new THREE.Color('#D8D8D8'), []);
+  const whiteColor = useMemo(
+    () => new THREE.Color('rgba(255,255,255,0.1)'),
+    []
+  );
   //   const blackColor = useMemo(() => new THREE.Color('#2A2A2A'), []);
 
   const getMaterialProps = useCallback(
@@ -35,17 +38,20 @@ const HoveredPiece = ({ turn, code, piece }: HoveredPieceProps) => {
   return (
     <mesh
       castShadow
-      position={[0, crossHeight, 6]}
-      rotation={[0, -Math.PI, 0]}
+      position={turn === 'w' ? [0, crossHeight, 6] : [0, crossHeight, -6]}
+      rotation={turn === 'w' ? [0, -Math.PI, 0] : [Math.PI, -Math.PI, Math.PI]}
       scale={[1, 1, 1]}>
       <boxGeometry args={[crossWidth, crossThickness, crossThickness]} />
       <meshStandardMaterial {...materialProps} />
       {piece && (
-        <Text fontSize={0.4} color={'#fff'} position={[-7, crossHeight + 2, 0]}>
-          {piece[0] === 'w' ? 'White' : 'Black'}
+        <Text
+          fontSize={0.4}
+          color={'rgba(255,255,0.5'}
+          position={[-0, crossHeight + 2.2, 0]}>
+          | {piece[0] === 'w' ? 'White' : 'Black'} |
         </Text>
       )}
-      <Text fontSize={5.8} color={'#fff'}>
+      <Text fontSize={5.8} color={'rgba(255,255,0.5'}>
         {
           VECTORS.NAMINGS.PIECES[
             code[1].toLowerCase() as keyof typeof VECTORS.NAMINGS.PIECES
