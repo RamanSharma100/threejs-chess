@@ -1,12 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getMoves, Status } from '../../../logic/chess/moves';
-import {
-  isValidMove,
-  makeMove,
-  // isCheck,
-  // isCheckmate,
-  // canCastle,
-} from '../../../logic/chess/move-logic';
+import { isValidMove, makeMove } from '../../../logic/chess/move-logic';
 import {
   playCaptureSound,
   playCheckSound,
@@ -66,8 +60,8 @@ const initialState: GameState = {
   },
   isCheckmate: null,
   canCastle: {
-    w: false,
-    b: false,
+    w: true,
+    b: true,
   },
   capturedPieces: {
     w: [],
@@ -85,11 +79,6 @@ const chessGameSlice = createSlice({
       y += state.offset || 3.5;
 
       const piece = state.board[y][x];
-
-      // if (state.inCheck[state.turn] && piece && piece[1] !== 'K') {
-      //   console.log('In check, cannot select piece');
-      //   return;
-      // }
 
       if (!piece || piece[0] !== state.turn) {
         if (state.selected) {
@@ -136,7 +125,12 @@ const chessGameSlice = createSlice({
         return;
       }
 
-      const { newBoard, captured, isInCheck } = makeMove(state.board, from, to);
+      const { newBoard, captured, isInCheck } = makeMove(
+        state.board,
+        from,
+        to,
+        status
+      );
       state.board = newBoard;
       state.selected = null;
       state.paths = [];
@@ -152,6 +146,12 @@ const chessGameSlice = createSlice({
         } else {
           playMoveSound();
         }
+      }
+
+      const isKingMoved =
+        state.board[y][x]?.[1] === 'K' || state.board[y][x]?.[1] === 'R';
+      if (isKingMoved) {
+        state.canCastle[state.turn] = false;
       }
 
       state.turn = state.turn === 'w' ? 'b' : 'w';

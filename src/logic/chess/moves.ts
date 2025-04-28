@@ -215,6 +215,11 @@ const getKingMoves = (
     [-1, -1],
   ];
 
+  if (status.canCastle) {
+    moves.push([2, 0]);
+    moves.push([-2, 0]);
+  }
+
   for (const [dx, dy] of moves) {
     const nx = x + dx;
     const ny = y + dy;

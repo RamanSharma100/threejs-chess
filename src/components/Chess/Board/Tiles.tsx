@@ -242,13 +242,13 @@ const BoardTiles = () => {
                 {VECTORS.NAMINGS.HORIZONTAL[board[0].length - 1 - x]}
               </Text>
             )}
-            {hovered && (
+            {/* {hovered && (
               <HoveredPiece
                 piece={board[y][x]}
                 turn={turn}
                 code={hovered.toLowerCase()}
               />
-            )}
+            )} */}
           </group>
         );
       }

@@ -20,7 +20,8 @@ export const isValidMove = (
 export const makeMove = (
   board: Board,
   from: [number, number],
-  to: [number, number]
+  to: [number, number],
+  status: Status
 ): { newBoard: Board; captured: PieceCode | null; isInCheck: boolean } => {
   const newBoard = board.map((row) => [...row]);
   const [fx, fy] = from;
@@ -28,8 +29,30 @@ export const makeMove = (
   const piece = board[fy][fx];
   const captured = board[ty][tx];
 
-  newBoard[fy][fx] = null;
-  newBoard[ty][tx] = piece;
+  if (!piece) return { newBoard, captured: null, isInCheck: false };
+
+  // check for the castling if piece is a king or rook
+  console.log('piece', piece);
+  console.log('captured', captured);
+  console.log(
+    (piece[1] === 'K' || piece[1] === 'R') &&
+      status.canCastle &&
+      !status.isInCheck[piece[0] as 'w' | 'b']
+  );
+  if (
+    (piece[1] === 'K' || piece[1] === 'R') &&
+    status.canCastle &&
+    !status.isInCheck[piece[0] as 'w' | 'b']
+  ) {
+    return {
+      newBoard: doCastle(newBoard, from, to),
+      captured,
+      isInCheck: false,
+    };
+  } else {
+    newBoard[fy][fx] = null;
+    newBoard[ty][tx] = piece;
+  }
 
   // check for the check
   const isInCheck = isCheck(newBoard, piece![0] === 'w' ? 'b' : 'w');
@@ -94,7 +117,7 @@ export const isCheckmate = (
       if (piece && piece[0] === turn) {
         const moves = getMoves(x, y, piece, board, turn, status);
         for (const [mx, my] of moves) {
-          const { newBoard } = makeMove(board, [x, y], [mx, my]);
+          const { newBoard } = makeMove(board, [x, y], [mx, my], status);
           if (!isCheck(newBoard, turn)) {
             return false;
           }
@@ -105,44 +128,31 @@ export const isCheckmate = (
   return true;
 };
 
-export const canCastle = (
+export const doCastle = (
   board: Board,
-  turn: 'w' | 'b',
-  _status: Status
-): boolean => {
-  const y = turn === 'w' ? 7 : 0;
-  const king = board[y][4];
-  const rookKingside = board[y][7];
-  const rookQueenside = board[y][0];
+  kingFrom: [number, number],
+  kingTo: [number, number]
+): Board => {
+  const newBoard = board.map((row) => [...row]);
+  const [kxFrom, kyFrom] = kingFrom;
+  const [kxTo, kyTo] = kingTo;
+  const isKingside = kxTo < kxFrom;
 
-  if (king !== `${turn}K`) return false;
+  const kingPiece = board[kyFrom][kxFrom];
+  const rookPiece = isKingside
+    ? board[kyFrom][kxFrom - 3]
+    : board[kyFrom][kxFrom + 4];
 
-  if (
-    rookKingside === `${turn}R` &&
-    !board[y][5] &&
-    !board[y][6] &&
-    !isCheck(board, turn)
-  ) {
-    const boardMid = makeMove(board, [4, y], [5, y]).newBoard;
-    if (!isCheck(boardMid, turn)) {
-      const boardEnd = makeMove(boardMid, [5, y], [6, y]).newBoard;
-      if (!isCheck(boardEnd, turn)) return true;
-    }
-  }
+  // Ensure the piece at kingFrom is actually a king and the piece at rook position is a rook
+  if (!kingPiece || kingPiece[1] !== 'K' || !rookPiece || rookPiece[1] !== 'R')
+    return newBoard;
 
-  if (
-    rookQueenside === `${turn}R` &&
-    !board[y][1] &&
-    !board[y][2] &&
-    !board[y][3] &&
-    !isCheck(board, turn)
-  ) {
-    const boardMid = makeMove(board, [4, y], [3, y]).newBoard;
-    if (!isCheck(boardMid, turn)) {
-      const boardEnd = makeMove(boardMid, [3, y], [2, y]).newBoard;
-      if (!isCheck(boardEnd, turn)) return true;
-    }
-  }
+  newBoard[kyFrom][kxFrom] = null; // Remove the king from its original position
+  newBoard[kyTo][kxTo] = kingPiece; // Place the king in its new position
+  newBoard[kyTo][isKingside ? kxTo + 1 : kxTo - 1] = rookPiece; // Move the rook next to the king
+  newBoard[kyFrom][isKingside ? kxFrom - 3 : kxFrom + 4] = null; // Remove the rook from its original position
 
-  return false;
+  return newBoard;
+
+  return newBoard;
 };
