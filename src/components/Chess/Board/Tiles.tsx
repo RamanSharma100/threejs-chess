@@ -101,11 +101,6 @@ const BoardTiles = () => {
     };
 
     const handleHoverIn = (e: any, isPath: boolean, _code: string | null) => {
-      // if (code) {
-      //   setTimeout(() => {
-      //     setHovered(code);
-      //   }, 200);
-      // }
       if (isPath) {
         if (e.object.material.emissive) {
           e.object.material.emissive.set(0x0000ff);
@@ -128,7 +123,6 @@ const BoardTiles = () => {
     };
 
     const handleHoverOut = (e: any, isPath: boolean, x: number, y: number) => {
-      // setHovered(null);
       if (isPath) {
         if (e.object.material.emissive) {
           try {

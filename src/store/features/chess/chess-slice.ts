@@ -38,7 +38,7 @@ type GameState = {
   turn: 'w' | 'b';
   level: number;
   paths: [number, number][];
-  offset?: number;
+  offset: number;
   opponent?: 'w' | 'b';
   inCheck: Bool;
   isCheckmate: 'w' | 'b' | null;
