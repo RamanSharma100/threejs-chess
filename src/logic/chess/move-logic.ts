@@ -130,29 +130,59 @@ export const isCheckmate = (
 
 export const doCastle = (
   board: Board,
-  kingFrom: [number, number],
-  kingTo: [number, number]
+  from: [number, number], // King's starting square [x, y]
+  to: [number, number] // King's ending square [x, y]
 ): Board => {
   const newBoard = board.map((row) => [...row]);
-  const [kxFrom, kyFrom] = kingFrom;
-  const [kxTo, kyTo] = kingTo;
-  const isKingside = kxTo < kxFrom;
+  const [xFrom, yFrom] = from;
+  const [xTo, yTo] = to;
 
-  const kingPiece = board[kyFrom][kxFrom];
-  const rookPiece = isKingside
-    ? board[kyFrom][kxFrom - 3]
-    : board[kyFrom][kxFrom + 4];
+  const kingPiece = newBoard[yFrom][xFrom];
 
-  // Ensure the piece at kingFrom is actually a king and the piece at rook position is a rook
-  if (!kingPiece || kingPiece[1] !== 'K' || !rookPiece || rookPiece[1] !== 'R')
+  if (!kingPiece || kingPiece[1] !== 'K') {
+    console.error(
+      'doCastle called with non-king piece or empty square:',
+      from,
+      kingPiece
+    );
     return newBoard;
+  }
 
-  newBoard[kyFrom][kxFrom] = null; // Remove the king from its original position
-  newBoard[kyTo][kxTo] = kingPiece; // Place the king in its new position
-  newBoard[kyTo][isKingside ? kxTo + 1 : kxTo - 1] = rookPiece; // Move the rook next to the king
-  newBoard[kyFrom][isKingside ? kxFrom - 3 : kxFrom + 4] = null; // Remove the rook from its original position
+  if (yFrom !== yTo) {
+    console.error('doCastle called with different y-coordinates:', from, to);
+    return newBoard;
+  }
 
-  return newBoard;
+  const isKingSide = xTo > xFrom;
+  let rookFromX: number;
+  let rookToX: number;
+
+  if (isKingSide) {
+    rookFromX = 7;
+    rookToX = xTo - 1;
+  } else {
+    rookFromX = 0;
+    rookToX = xTo + 1;
+  }
+
+  const rookPiece = newBoard[yFrom][rookFromX];
+
+  if (!rookPiece || rookPiece[1] !== 'R' || rookPiece[0] !== kingPiece[0]) {
+    console.error(
+      `doCastle: Expected Rook (${
+        kingPiece[0]
+      }R) not found at [${rookFromX}, ${yFrom}] for ${
+        isKingSide ? 'Kingside' : 'Queenside'
+      } castle.`
+    );
+    return newBoard;
+  }
+
+  newBoard[yTo][xTo] = kingPiece;
+  newBoard[yFrom][xFrom] = null;
+
+  newBoard[yTo][rookToX] = rookPiece;
+  newBoard[yFrom][rookFromX] = null;
 
   return newBoard;
 };
