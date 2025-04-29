@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
 import { shallowEqual } from 'react-redux';
@@ -7,7 +7,6 @@ import { RootState } from '../../../store/store';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
 import { move, unselect } from '../../../store/features/chess/chess-slice';
 import { VECTORS } from '../../../constants';
-import HoveredPiece from '../HoveredPiece';
 
 const BoardTiles = () => {
   const { paths, selected, board, turn, isInCheck } = useAppSelector(
@@ -20,8 +19,6 @@ const BoardTiles = () => {
     }),
     shallowEqual
   );
-
-  const [hovered, setHovered] = useState<string | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -103,12 +100,12 @@ const BoardTiles = () => {
       `,
     };
 
-    const handleHoverIn = (e: any, isPath: boolean, code: string | null) => {
-      if (code) {
-        setTimeout(() => {
-          setHovered(code);
-        }, 200);
-      }
+    const handleHoverIn = (e: any, isPath: boolean, _code: string | null) => {
+      // if (code) {
+      //   setTimeout(() => {
+      //     setHovered(code);
+      //   }, 200);
+      // }
       if (isPath) {
         if (e.object.material.emissive) {
           e.object.material.emissive.set(0x0000ff);
@@ -131,7 +128,7 @@ const BoardTiles = () => {
     };
 
     const handleHoverOut = (e: any, isPath: boolean, x: number, y: number) => {
-      setHovered(null);
+      // setHovered(null);
       if (isPath) {
         if (e.object.material.emissive) {
           try {
@@ -242,20 +239,13 @@ const BoardTiles = () => {
                 {VECTORS.NAMINGS.HORIZONTAL[board[0].length - 1 - x]}
               </Text>
             )}
-            {/* {hovered && (
-              <HoveredPiece
-                piece={board[y][x]}
-                turn={turn}
-                code={hovered.toLowerCase()}
-              />
-            )} */}
           </group>
         );
       }
     }
 
     return out;
-  }, [paths, selected, dispatch, board, turn, isInCheck, hovered]);
+  }, [paths, selected, dispatch, board, turn, isInCheck]);
 
   return <>{tiles}</>;
 };

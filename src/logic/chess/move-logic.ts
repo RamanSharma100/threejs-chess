@@ -184,5 +184,6 @@ export const doCastle = (
   newBoard[yTo][rookToX] = rookPiece;
   newBoard[yFrom][rookFromX] = null;
 
+  // 9. Return the updated board
   return newBoard;
 };
